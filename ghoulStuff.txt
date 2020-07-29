@@ -1,0 +1,235 @@
+const { Discord, Client, Attachment, MessageAttachment, MessageEmbed}= require ('discord.js');
+const bot = new Client();
+
+var prefix = "-";
+const ms = require ('ms');
+const RandomReddit = require ('random-reddit');
+var dMeme = 'dank memes';
+var meme = 'meme';
+const cheerio = require('cheerio');
+const request = require('request');
+
+
+
+bot.on('ready', () => {
+    console.log('Ghoul bot is online!');
+})
+
+bot.on('message', message => {
+
+    if(!message.content.startsWith(prefix) || message.author.bot) {
+        return;
+    }
+    const args = message.content.substring(prefix.length).split(" ");
+    //console.log(args)
+
+    switch(args[0]) {
+        
+        case 'meme':
+            image(message, 'meme');
+            break;
+        case 'dankmeme':
+            image(message, 'dank memes');
+            break;
+        case 'invite':
+            message.channel.send("\*\*SERVER\*\*: https://discord.gg/GRmHfPf");
+            message.channel.send("\*\*BOT\*\*: https://discordapp.com/oauth2/authorize?client_id=731695177898393681&scope=bot&permissions=2146958839")
+            break;
+        case 'ping':
+            message.channel.send('pong!');
+        break;
+        case 'pong':
+            message.channel.send('ping!');
+        break;
+        case 'theOther':
+            message.channel.send('hey, I\'m working over here!');
+            break;
+        
+        case 'help':
+            message.channel.send('\*\*This\*\* \*\*bot\*\* \*\*currently\*\* \*\*only\*\* \*\*has\*\* \*\*the\*\* \*\*following\*\* \*\*commands:\*\* \`ping\`\*\*,\*\* \`pong\`\*\*,\*\* \`meme\`\*\*,\*\* \`mute\`\*\*,\*\* \`kick\`\*\*,\*\* \`ban\`\*\*,\*\* \*\*and\*\* \`disconnect\` \*\*.\*\* \*\*This bot\'s escape key is\*\* \`-\`\*\*.\*\*');
+            break;
+            case 'disconnect':
+
+            if (!message.member.hasPermission("ADMINISTRATOR", explicit = true)) {
+                message.channel.send('You don´t have permissions.');
+                return;
+            }
+
+
+            if (!args[1]) message.channel.send('You need to specify a person!')
+            const user1 = message.mentions.users.first();
+            if (user1) {
+                const member = message.guild.member(user1);
+                if (member) {
+                    member.voice.kick('You were disconnected because lol').then(() => {
+                        message.reply(`Successfully disconnected ${user1.tag}`);
+                    }).catch(err => {
+                        message.reply('I was unable to disconnect the member for some reason')
+                        console.log(err)
+                    });
+                } else {
+                    message.reply("That user is not in this guild!");
+                }
+            } else {
+                message.reply("Specify a person!");
+            }
+
+
+            break;
+
+            case 'kick':
+                if (!message.member.hasPermission("ADMINISTRATOR", explicit = true)) {
+                    message.channel.send('You don´t have permissions.');
+                    return;
+                }
+    
+                if (!args[1]) message.channel.send('You need to specify a person!')
+                const user = message.mentions.users.first();
+                if (user) {
+                    const member = message.guild.member(user);
+                    if (member) {
+                        member.kick('You were kick because lol').then(() => {
+                            message.reply(`Successfully kicked ${user.tag}`);
+                        }).catch(err => {
+                            message.reply('I was unable to kick the member for some reason')
+                            console.log(err)
+                        });
+                    } else {
+                        message.reply("That user is not in this guild!");
+                    }
+                } else {
+                    message.reply("Specify a person!");
+                }
+    
+    
+                break;
+            
+                case 'mute':
+
+            if (!message.member.hasPermission("ADMINISTRATOR", explicit = true)) {
+                message.channel.send('You don´t have permissions.');
+                return;
+            }
+
+            var person = message.mentions.members.first();
+            if (!person) return message.channel.send("Unable to find user.")
+
+            var mainrole = message.guild.roles.cache.some(role => role.name === "Member")
+            var muterole = message.guild.roles.cache.some(role => role.name === "Muted")
+
+            if(!muterole) return message.channel.send("Couldn't find mute role.")
+
+            var time = args[1];
+            console.log(args);
+            console.log(time);
+            
+            if(!time) {
+                return message.channel.send("Didn't specify a time");
+            }
+            person.roles.set(['731251364205822042']);
+            
+            
+            message.channel.send(`@${person.user.tag} has now been muted for ${ms(ms(time))}`)
+
+            setTimeout(function() {
+                person.roles.remove('731251364205822042');
+                person.roles.set(['726400455797899284']);
+                message.channel.send(`@${person.user.tag} has been unmuted.`);
+            }, ms(time));
+            break;
+
+            case 'ban':
+            if (!message.member.hasPermission("ADMINISTRATOR", explicit = true)) {
+                message.channel.send('You don´t have permissions.');
+                return;
+            }
+            const user2 = message.mentions.users.first();
+            if (!args[1]) message.channel.send('You need to specify a person!')
+            //const user = message.mentions.users.first();
+            if (user2) {
+                const member = message.guild.member(user2);
+                if (member) {
+                    member.ban('You were banned because lol').then(() => {
+                        message.reply(`Successfully ban ${user2.tag}`);
+                    }).catch(err => {
+                        message.reply('I was unable to ban the member for some reason')
+                        console.log(err)
+                    });
+                } else {
+                    message.reply("That user is not in this guild!");
+                }
+            } else {
+                message.reply("Specify a person!");
+            }
+
+
+            break;
+            case 'purge':
+            if (!message.member.hasPermission("ADMINISTRATOR", explicit = true)) return message.channel.send('You don´t have permissions.')
+            if (!args[1]) message.reply('Error, please define a second part.')
+            message.channel.bulkDelete(args[1]);
+            break;
+
+           
+    }
+    
+});
+
+function image(message, str) {
+
+    
+    if (str === meme) {
+        var options = {
+            url: "http://results.dogpile.com/serp?qc=images&q=" + "meme",
+            method: "GET",
+            headers: {
+                "Accept": "text/html",
+                "User-Agent": "Chrome"
+            }
+        };
+    }
+    else if (str === dMeme) {
+        
+        var options = {
+            url: "http://results.dogpile.com/serp?qc=images&q=" + "dank memes",
+            method: "GET",
+            headers: {
+                "Accept": "text/html",
+                "User-Agent": "Chrome"
+            }
+        };
+    }
+
+    
+
+
+
+
+
+
+    request(options, function (error, response, responseBody) {
+        if (error) {
+            return;
+        }
+
+
+        $ = cheerio.load(responseBody);
+
+
+        var links = $(".image a.link");
+
+        var urls = new Array(links.length).fill(0).map((v, i) => links.eq(i).attr("href"));
+
+        console.log(urls);
+
+        if (!urls.length) {
+
+            return;
+        }
+
+        // Send result
+        message.channel.send(urls[Math.floor(Math.random() * urls.length)]);
+    });
+}
+
+bot.login(process.env.token);
